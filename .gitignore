@@ -1,0 +1,12 @@
+# SQLite database
+expenses.db
+
+# Go binaries
+*.exe
+
+# Environment files
+.env
+
+# IDE files
+.vscode/
+.idea/
