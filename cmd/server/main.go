@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 
 	"expense-tracker/internal/config"
@@ -9,6 +10,13 @@ import (
 	"expense-tracker/internal/handler"
 	"expense-tracker/internal/repository"
 )
+
+func loggingMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log.Printf("%s %s", r.Method, r.URL.Path)
+		next.ServeHTTP(w, r)
+	})
+}
 
 func main() {
 	cfg := config.Load()
@@ -77,7 +85,7 @@ func main() {
 
 	fmt.Println("Server is running on http://localhost:" + cfg.Port)
 
-	err = http.ListenAndServe(":"+cfg.Port, nil)
+	err = http.ListenAndServe(":"+cfg.Port, loggingMiddleware(http.DefaultServeMux))
 	if err != nil {
 		fmt.Println(err)
 	}
