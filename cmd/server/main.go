@@ -3,27 +3,17 @@ package main
 import (
 	"fmt"
 	"net/http"
-	"os"
 
+	"expense-tracker/internal/config"
 	"expense-tracker/internal/database"
 	"expense-tracker/internal/handler"
 	"expense-tracker/internal/repository"
 )
 
 func main() {
-	databasePath := os.Getenv("DATABASE_PATH")
+	cfg := config.Load()
 
-	if databasePath == "" {
-		databasePath = "expenses.db"
-	}
-
-	port := os.Getenv("PORT")
-
-	if port == "" {
-		port = "8080"
-	}
-
-	db, err := database.Open(databasePath)
+	db, err := database.Open(cfg.DatabasePath)
 	if err != nil {
 		fmt.Println("failed to open database:", err)
 		return
@@ -51,8 +41,10 @@ func main() {
 		switch r.Method {
 		case http.MethodPost:
 			expenseHandler.Create(w, r)
+
 		case http.MethodGet:
 			expenseHandler.GetAll(w, r)
+
 		default:
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}
@@ -83,9 +75,9 @@ func main() {
 		}
 	})
 
-	fmt.Println("Server is running on http://localhost:" + port)
+	fmt.Println("Server is running on http://localhost:" + cfg.Port)
 
-	err = http.ListenAndServe(":"+port, nil)
+	err = http.ListenAndServe(":"+cfg.Port, nil)
 	if err != nil {
 		fmt.Println(err)
 	}
