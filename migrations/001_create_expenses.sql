@@ -1,0 +1,8 @@
+CREATE TABLE IF NOT EXISTS expenses (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    amount REAL NOT NULL CHECK (amount > 0),
+    category TEXT NOT NULL,
+    note TEXT,
+    spent_on DATE NOT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
