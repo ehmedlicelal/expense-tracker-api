@@ -50,7 +50,7 @@ func (r *ExpenseRepository) GetAll() ([]expense.Expense, error) {
 	}
 	defer rows.Close()
 
-	var expenses []expense.Expense
+	expenses := make([]expense.Expense, 0)
 
 	for rows.Next() {
 		var e expense.Expense

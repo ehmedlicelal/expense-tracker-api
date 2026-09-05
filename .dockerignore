@@ -1,0 +1,7 @@
+.git
+.gitignore
+expenses.db
+*.exe
+.env
+.vscode
+.idea
