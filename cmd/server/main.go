@@ -6,6 +6,8 @@ import (
 	"os"
 
 	"expense-tracker/internal/database"
+	"expense-tracker/internal/handler"
+	"expense-tracker/internal/repository"
 )
 
 func main() {
@@ -42,7 +44,44 @@ func main() {
 
 	fmt.Println("Migrations completed successfully")
 
-	http.HandleFunc("/expenses", expensesHandler)
+	expenseRepository := repository.NewExpenseRepository(db)
+	expenseHandler := handler.NewExpenseHandler(expenseRepository)
+
+	http.HandleFunc("/expenses", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodPost:
+			expenseHandler.Create(w, r)
+		case http.MethodGet:
+			expenseHandler.GetAll(w, r)
+		default:
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	})
+
+	http.HandleFunc("/expenses/summary", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+
+		expenseHandler.GetSummary(w, r)
+	})
+
+	http.HandleFunc("/expenses/", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			expenseHandler.GetByID(w, r)
+
+		case http.MethodPatch:
+			expenseHandler.Update(w, r)
+
+		case http.MethodDelete:
+			expenseHandler.Delete(w, r)
+
+		default:
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	})
 
 	fmt.Println("Server is running on http://localhost:" + port)
 
@@ -50,16 +89,4 @@ func main() {
 	if err != nil {
 		fmt.Println(err)
 	}
-}
-
-func expensesHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-
-	fmt.Fprintln(w, `{"message":"Expenses endpoint"}`)
 }
