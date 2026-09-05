@@ -18,6 +18,45 @@ func loggingMiddleware(next http.Handler) http.Handler {
 	})
 }
 
+func setupRoutes(expenseHandler *handler.ExpenseHandler) http.Handler {
+	mux := http.NewServeMux()
+
+	mux.HandleFunc("/expenses", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodPost:
+			expenseHandler.Create(w, r)
+		case http.MethodGet:
+			expenseHandler.GetAll(w, r)
+		default:
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	})
+
+	mux.HandleFunc("/expenses/summary", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+
+		expenseHandler.GetSummary(w, r)
+	})
+
+	mux.HandleFunc("/expenses/", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			expenseHandler.GetByID(w, r)
+		case http.MethodPatch:
+			expenseHandler.Update(w, r)
+		case http.MethodDelete:
+			expenseHandler.Delete(w, r)
+		default:
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		}
+	})
+
+	return loggingMiddleware(mux)
+}
+
 func main() {
 	cfg := config.Load()
 
@@ -45,47 +84,11 @@ func main() {
 	expenseRepository := repository.NewExpenseRepository(db)
 	expenseHandler := handler.NewExpenseHandler(expenseRepository)
 
-	http.HandleFunc("/expenses", func(w http.ResponseWriter, r *http.Request) {
-		switch r.Method {
-		case http.MethodPost:
-			expenseHandler.Create(w, r)
-
-		case http.MethodGet:
-			expenseHandler.GetAll(w, r)
-
-		default:
-			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		}
-	})
-
-	http.HandleFunc("/expenses/summary", func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodGet {
-			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-			return
-		}
-
-		expenseHandler.GetSummary(w, r)
-	})
-
-	http.HandleFunc("/expenses/", func(w http.ResponseWriter, r *http.Request) {
-		switch r.Method {
-		case http.MethodGet:
-			expenseHandler.GetByID(w, r)
-
-		case http.MethodPatch:
-			expenseHandler.Update(w, r)
-
-		case http.MethodDelete:
-			expenseHandler.Delete(w, r)
-
-		default:
-			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		}
-	})
+	server := setupRoutes(expenseHandler)
 
 	fmt.Println("Server is running on http://localhost:" + cfg.Port)
 
-	err = http.ListenAndServe(":"+cfg.Port, loggingMiddleware(http.DefaultServeMux))
+	err = http.ListenAndServe(":"+cfg.Port, server)
 	if err != nil {
 		fmt.Println(err)
 	}
