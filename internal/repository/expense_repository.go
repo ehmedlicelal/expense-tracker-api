@@ -43,7 +43,7 @@ func (r *ExpenseRepository) GetAll() ([]expense.Expense, error) {
 	rows, err := r.db.Query(`
 		SELECT id, amount, category, note, spent_on, created_at
 		FROM expenses
-		ORDER BY created_at DESC
+		ORDER BY created_at DESC, id DESC
 	`)
 	if err != nil {
 		return nil, err
