@@ -6,91 +6,102 @@ A simple REST API for managing personal expenses, built with Go and SQLite.
 
 ### Automated Tests
 
-Run the automated tests:
+Run the complete test suite:
 
 ```bash
 go test ./...
+```
 
-The tests cover expense creation, validation, retrieval, updates, deletion, not-found cases, and summary handling.
+Tests cover model behavior, configuration, database migrations, repository CRUD operations, request validation, HTTP handlers, routing, and server integration.
 
-Manual API Testing
+### Manual Testing
 
 Start the server:
 
+```bash
 go run ./cmd/server
+```
 
 Or use Docker:
 
+```bash
 docker build -t expense-tracker .
 docker run -p 8080:8080 expense-tracker
-API Endpoints
-POST /expenses
-GET /expenses
-GET /expenses/{id}
-PATCH /expenses/{id}
-DELETE /expenses/{id}
-GET /expenses/summary
-API Endpoints
-POST /expenses
+```
+
+## API Endpoints
+
+* [POST /expenses](#post-expenses)
+* [GET /expenses](#get-expenses)
+* [GET /expenses/{id}](#get-expensesid)
+* [PATCH /expenses/{id}](#patch-expensesid)
+* [DELETE /expenses/{id}](#delete-expensesid)
+* [GET /expenses/summary](#get-expensessummary)
+
+### POST /expenses
 
 Creates an expense.
 
+```json
 {
   "amount": 25.5,
   "category": "Food",
   "note": "Lunch",
   "spent_on": "2026-09-05"
 }
+```
 
-Expected response: 201 Created
+Expected response: `201 Created`
 
-GET /expenses
+### GET /expenses
 
 Returns all expenses, newest first.
 
-Expected response: 200 OK
+Expected response: `200 OK`
 
-GET /expenses/{id}
+### GET /expenses/{id}
 
 Returns an expense by ID.
 
-Expected responses: 200 OK, 400 Bad Request, 404 Not Found
+Expected responses: `200 OK`, `400 Bad Request`, `404 Not Found`
 
-PATCH /expenses/{id}
+### PATCH /expenses/{id}
 
-Updates amount, category, and/or note.
+Updates `amount`, `category`, and/or `note`.
 
-Expected responses: 200 OK, 400 Bad Request, 404 Not Found
+Expected responses: `200 OK`, `400 Bad Request`, `404 Not Found`
 
-DELETE /expenses/{id}
+### DELETE /expenses/{id}
 
 Deletes an expense.
 
-Expected responses: 200 OK, 404 Not Found
+Expected responses: `200 OK`, `404 Not Found`
 
-GET /expenses/summary
+### GET /expenses/summary
 
 Returns total expenses grouped by category.
 
-Expected response: 200 OK
+Expected response: `200 OK`
 
-Configuration
+## Configuration
 
 Environment variables:
 
+```text
 PORT=8080
 DATABASE_PATH=expenses.db
+```
 
-These values are used by default when the variables are not provided.
+Defaults are used when these variables are not provided.
 
-Technical Decisions
+## Technical Decisions
 
-SQLite was chosen because it provides simple persistence without requiring a separate database server. The project uses Go's standard HTTP library, database/sql, and modernc.org/sqlite, which does not require CGO.
+SQLite was chosen for simple persistence without a separate database server. The project uses Go's standard HTTP library, `database/sql`, and `modernc.org/sqlite` to avoid CGO.
 
-The code is separated into handlers, repository, database, model, and configuration layers.
+The code is organized into handlers, repository, database, model, and configuration layers.
 
-Assumptions and Improvements
+## Assumptions and Improvements
 
-spent_on uses the YYYY-MM-DD format. IDs are auto-incrementing integers. Authentication is outside the assignment scope.
+`spent_on` uses the `YYYY-MM-DD` format. IDs are auto-incrementing integers. Authentication is outside the assignment scope.
 
-Possible improvements include pagination, stronger validation, structured logging, and additional repository-level tests.
+Possible improvements include pagination, stronger validation, structured logging, and improved database handling for larger workloads.
